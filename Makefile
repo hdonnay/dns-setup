@@ -9,15 +9,18 @@ PARTS = musl expat libressl unbound nsd
 WORK := $(PWD)/work
 OPTS := CC=$(WORK)/bin/musl-gcc LDFLAGS=-L$(WORK)/lib CPPFLAGS=-I$(WORK)/include
 
-all: check-deps get-all build-all install-all finish
+all: check-deps get-all build-all finish
 
 check-deps:
-	mkdir -p $(PWD)out
+	mkdir -p $(PWD)/out
 	ln -sf $(PWD)/out $(DNS)
 
 get-all: $(patsubst %,%-get,$(PARTS))
 
 build-all: check-deps | $(patsubst %,%-build,$(PARTS))
+
+finish:
+	@
 
 $(foreach p,$(PARTS),$(eval $(call TEMPLATE,$p)))
 
@@ -39,12 +42,12 @@ libressl-config: libressl-get
 
 unbound-config: unbound-get
 	cd $(UNBOUND_DIR) && ./configure --prefix=$(WORK) --with-username=nobody \
-		--sysconfdir=/etc --with-conf-file=$(DNS)/unbound/unbound.conf --disable-flto --disable-shared \
+		--sysconfdir=. --with-conf-file=./unbound/unbound.conf --disable-flto --disable-shared \
 		--with-ssl=$(WORK) --with-libexpat=$(WORK) $(OPTS) >/dev/null
 
 nsd-config: nsd-get
 	cd $(NSD_DIR) && ./configure --prefix=$(WORK) \
-		--with-configdir=$(DNS)/nsd --with-user=nobody \
+		--with-configdir=./nsd --with-user=nobody \
 		--disable-flto --with-libevent=no --with-ssl=$(WORK) $(OPTS)\
 		>/dev/null
 
