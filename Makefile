@@ -7,20 +7,24 @@ DEP_FILE = /usr/include/linux /usr/include/asm-generic /usr/include/asm
 # order matters on this
 PARTS = musl expat libressl unbound nsd
 WORK := $(PWD)/work
+OUT := $(PWD)/dns
 OPTS := CC=$(WORK)/bin/musl-gcc LDFLAGS=-L$(WORK)/lib CPPFLAGS=-I$(WORK)/include
 
 all: check-deps get-all build-all finish
 
 check-deps:
-	mkdir -p $(PWD)/out
-	ln -sf $(PWD)/out $(DNS)
+	mkdir -p $(OUT)
+	ln -sf $(OUT) $(DNS)
 
 get-all: $(patsubst %,%-get,$(PARTS))
 
 build-all: check-deps | $(patsubst %,%-build,$(PARTS))
 
-finish:
-	@
+finish: build-all
+	cp $(WORK)/sbin/* $(OUT)/
+	cp $(UNBOUND_DIR)/unbound.conf $(OUT)/unbound.conf
+	cp $(NSD_DIR)/nsd.conf.sample $(OUT)/nsd.conf
+	tar cJf ./dns.tar.xz -C $$(dirname $(OUT)) --owner=root --group=root $$(basename $(OUT))
 
 $(foreach p,$(PARTS),$(eval $(call TEMPLATE,$p)))
 
@@ -52,8 +56,11 @@ nsd-config: nsd-get
 		>/dev/null
 
 
+clean::
+	rm -rf $(WORK)
+
 cleanall:: clean
-	rm -rf $(WORK) $(PWD)/out
+	rm -rf $(OUT)
 
 .PHONY: check-deps get-all build-all $(PARTS) \
 	$(patsubst %,%-get,$(PARTS)) $(patsubst %,%-config,$(PARTS))

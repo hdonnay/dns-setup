@@ -26,5 +26,5 @@ $(1)-%.tar.gz:
 	@sha1sum -c $$(@:.tar.gz=.sha1sum) && rm $$(@:.tar.gz=.sha1sum)
 
 $(1)-build: $(1)-config
-	@cd $($(call upper,$(1))_DIR) && fakeroot make install
+	@cd $($(call upper,$(1))_DIR) && $$(MAKE) install
 endef
