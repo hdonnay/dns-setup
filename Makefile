@@ -50,7 +50,7 @@ nsd-config: nsd-get
 
 
 cleanall:: clean
-	rm -rf work
+	rm -rf $(WORK) $(PWD)/out
 
 .PHONY: check-deps get-all build-all $(PARTS) \
 	$(patsubst %,%-get,$(PARTS)) $(patsubst %,%-config,$(PARTS))
