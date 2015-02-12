@@ -1,3 +1,4 @@
+include config.mk
 include var.mk
 include func.mk
 
@@ -6,15 +7,17 @@ DEP_FILE = /usr/include/linux /usr/include/asm-generic /usr/include/asm
 # order matters on this
 PARTS = musl expat libressl unbound nsd
 WORK := $(PWD)/work
+OPTS := CC=$(WORK)/bin/musl-gcc LDFLAGS=-L$(WORK)/lib CPPFLAGS=-I$(WORK)/include
 
 all: check-deps get-all build-all install-all finish
 
 check-deps:
-	$(foreach)
+	mkdir -p $(PWD)out
+	ln -sf $(PWD)/out $(DNS)
 
 get-all: $(patsubst %,%-get,$(PARTS))
 
-build-all: | $(patsubst %,%-build,$(PARTS))
+build-all: check-deps | $(patsubst %,%-build,$(PARTS))
 
 $(foreach p,$(PARTS),$(eval $(call TEMPLATE,$p)))
 
@@ -27,25 +30,26 @@ musl-config: musl-get
 	cd $(WORK)/include && { $(foreach l,$(DEP_FILE),ln -sf $l ;) }
 
 expat-config: expat-get
-	cd $(EXPAT_DIR) && ./configure --prefix=$(WORK) --disable-shared CC=$(WORK)/bin/musl-gcc\
+	cd $(EXPAT_DIR) && ./configure --prefix=$(WORK) --disable-shared $(OPTS)\
 		>/dev/null
 
 libressl-config: libressl-get
-	cd $(LIBRESSL_DIR) && ./configure --prefix=$(WORK) --disable-shared CC=$(WORK)/bin/musl-gcc\
+	cd $(LIBRESSL_DIR) && ./configure --prefix=$(WORK) --disable-shared $(OPTS)\
 		>/dev/null
 
 unbound-config: unbound-get
-	cd $(UNBOUND_DIR) && ./configure --prefix=$(WORK) --with-run-dir=/run --with-username=nobody \
-		--disable-flto --disable-shared --with-ssl=$(WORK) --with-libexpat=$(WORK) CC=$(WORK)/bin/musl-gcc \
-		>/dev/null
+	cd $(UNBOUND_DIR) && ./configure --prefix=$(WORK) --with-username=nobody \
+		--sysconfdir=/etc --with-conf-file=$(DNS)/unbound/unbound.conf --disable-flto --disable-shared \
+		--with-ssl=$(WORK) --with-libexpat=$(WORK) $(OPTS) >/dev/null
 
 nsd-config: nsd-get
 	cd $(NSD_DIR) && ./configure --prefix=$(WORK) \
-		--disable-flto --with-libevent=no --with-ssl=$(WORK) CC=$(WORK)/bin/musl-gcc \
+		--with-configdir=$(DNS)/nsd --with-user=nobody \
+		--disable-flto --with-libevent=no --with-ssl=$(WORK) $(OPTS)\
 		>/dev/null
 
 
-cleanall: clean
+cleanall:: clean
 	rm -rf work
 
 .PHONY: check-deps get-all build-all $(PARTS) \

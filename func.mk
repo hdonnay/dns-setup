@@ -12,7 +12,10 @@ endef
 
 define TEMPLATE
 clean::
-	rm -rf $($(call upper,$(1))_DIR)*
+	rm -rf $($(call upper,$(1))_DIR)
+
+cleanall::
+	rm -rf $($(call upper,$(1))_TAR)
 
 $(1)-get: $($(call upper,$(1))_TAR)
 	@tar xzf $$<
@@ -23,5 +26,5 @@ $(1)-%.tar.gz:
 	@sha1sum -c $$(@:.tar.gz=.sha1sum) && rm $$(@:.tar.gz=.sha1sum)
 
 $(1)-build: $(1)-config
-	@cd $($(call upper,$(1))_DIR) && make install
+	@cd $($(call upper,$(1))_DIR) && fakeroot make install
 endef
