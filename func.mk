@@ -28,3 +28,13 @@ $(1)-%.tar.gz:
 $(1)-build: $(1)-config
 	@cd $($(call upper,$(1))_DIR) && $$(MAKE) install
 endef
+
+define CHECK_BIN
+	@if ! which $(1) >/dev/null 2>&1; then echo $(1) not found!; exit 1; else echo $(1): OK; fi
+
+endef
+
+define CHECK_DIR
+	@if ! test -d $(1) ; then echo $(1) not found!; exit 1; else echo $(1): OK; fi
+
+endef

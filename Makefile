@@ -2,9 +2,9 @@ include config.mk
 include var.mk
 include func.mk
 
-DEP_BINS = $(CC) sha1sum ln
+DEP_BINS = $(CC) $(LD) sha1sum pkg-config
 # my debian wheezy box has things in a odd location?
-DEP_FILE = /usr/include/linux /usr/include/asm-generic /usr/include$(if $(wildcard /usr/include/asm/*),,/x86_64-linux-gnu)/asm
+DEP_DIRS = /usr/include/linux /usr/include/asm-generic /usr/include$(if $(wildcard /usr/include/asm/*),,/x86_64-linux-gnu)/asm
 # order matters on this
 PARTS = musl expat libressl unbound nsd
 WORK := $(PWD)/work
@@ -14,17 +14,20 @@ OPTS := CC=$(WORK)/bin/musl-gcc LDFLAGS=-L$(WORK)/lib CPPFLAGS=-I$(WORK)/include
 all: check-deps get-all build-all finish
 
 check-deps:
-	mkdir -p $(OUT)
-	ln -sf $(OUT) $(DNS)
+	@mkdir -p $(OUT)/nsd $(OUT)/unbound
+	@ln -sf $(OUT) $(DNS)
+	$(foreach x,$(DEP_BINS),$(call CHECK_BIN,$x))
+	$(foreach x,$(DEP_DIRS),$(call CHECK_DIR,$x))
 
 get-all: $(patsubst %,%-get,$(PARTS))
 
 build-all: check-deps | $(patsubst %,%-build,$(PARTS))
 
 finish: build-all
-	cp $(WORK)/sbin/* $(OUT)/
-	cp $(UNBOUND_DIR)/unbound.conf $(OUT)/unbound.conf
-	cp $(NSD_DIR)/nsd.conf.sample $(OUT)/nsd.conf
+	cp $(WORK)/sbin/nsd* $(OUT)/nsd/
+	cp $(NSD_DIR)/nsd.conf.sample $(OUT)/nsd/nsd.conf
+	cp $(WORK)/sbin/unbound* $(OUT)/unbound/
+	cp $(UNBOUND_DIR)/unbound.conf $(OUT)/unbound/unbound.conf
 	tar cJf ./dns.tar.xz -C $$(dirname $(OUT)) --owner=root --group=root $$(basename $(OUT))
 
 $(foreach p,$(PARTS),$(eval $(call TEMPLATE,$p)))
@@ -35,7 +38,7 @@ musl-config: musl-get
 	cd $(MUSL_DIR) && ./configure --prefix=$(WORK) --syslibdir=$(WORK)/lib --disable-shared\
 		>/dev/null
 	cd $(MUSL_DIR) && $(MAKE) install
-	cd $(WORK)/include && { $(foreach l,$(DEP_FILE),ln -sf $l ;) }
+	cd $(WORK)/include && { $(foreach l,$(DEP_DIRS),ln -sf $l ;) }
 
 expat-config: expat-get
 	cd $(EXPAT_DIR) && ./configure --prefix=$(WORK) --disable-shared $(OPTS)\
