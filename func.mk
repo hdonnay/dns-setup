@@ -3,7 +3,7 @@ define FETCH
 endef
 
 define CKFILE
-@printf '%s\t%s\n' "$(2)" "$(1)" > $(1:.tar.gz=.sha1sum)
+@printf '%s  %s\n' "$(2)" "$(1)" > $(1:.tar.gz=.sha1sum)
 endef
 
 define upper

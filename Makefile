@@ -3,7 +3,8 @@ include var.mk
 include func.mk
 
 DEP_BINS = $(CC) sha1sum ln
-DEP_FILE = /usr/include/linux /usr/include/asm-generic /usr/include/asm
+# my debian wheezy box has things in a odd location?
+DEP_FILE = /usr/include/linux /usr/include/asm-generic /usr/include$(if $(wildcard /usr/include/asm/*),,/x86_64-linux-gnu)/asm
 # order matters on this
 PARTS = musl expat libressl unbound nsd
 WORK := $(PWD)/work
