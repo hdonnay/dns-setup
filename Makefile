@@ -42,12 +42,12 @@ libressl-config: libressl-get
 
 unbound-config: unbound-get
 	cd $(UNBOUND_DIR) && ./configure --prefix=$(WORK) --with-username=nobody \
-		--sysconfdir=. --with-conf-file=./unbound/unbound.conf --disable-flto --disable-shared \
+		--sysconfdir=/etc --with-conf-file=./unbound.conf --disable-flto --disable-shared \
 		--with-ssl=$(WORK) --with-libexpat=$(WORK) $(OPTS) >/dev/null
 
 nsd-config: nsd-get
 	cd $(NSD_DIR) && ./configure --prefix=$(WORK) \
-		--with-configdir=./nsd --with-user=nobody \
+		--with-configdir=. --with-user=nobody \
 		--disable-flto --with-libevent=no --with-ssl=$(WORK) $(OPTS)\
 		>/dev/null
 
