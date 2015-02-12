@@ -11,7 +11,8 @@ $(shell echo "$(1)" | tr '[:lower:]' '[:upper:]')
 endef
 
 define TEMPLATE
-CLEAN_PAT += $$($(call upper,$(1))_DIR)*
+clean::
+	rm -rf $$($(call upper,$(1))_DIR)*
 
 $(1)-get: $($(call upper,$(1))_TAR)
 	@tar xzf $$<
