@@ -1,4 +1,5 @@
 define FETCH
+$(info fetching $2 to $1)
 @wget -q -O "$(1)" $(2) || curl -s -o "$(1)" $(2)
 endef
 
